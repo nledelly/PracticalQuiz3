@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Solar System — A-Frame</title>
+  <script src="script/aframe.min.js"></script>
+  <style>
+    html, body { margin: 0; height: 100%; overflow: hidden; background: #000; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    #ui {
+      position: fixed; left: 12px; bottom: 12px; z-index: 10;
+      background: rgba(8,12,20,0.72); color: #e8f0ff; padding: 10px 12px; border-radius: 10px;
+      font-size: 13px; line-height: 1.45; backdrop-filter: blur(6px); border: 1px solid rgba(255,255,255,0.08);
+      max-width: 360px;
+    }
+    #ui kbd { background: #101827; border: 1px solid rgba(255,255,255,0.15); border-bottom-width: 2px; border-radius: 4px; padding: 1px 6px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+    #infoPanel {
+      position: fixed; right: 12px; top: 12px; z-index: 10; width: 320px; max-width: calc(100vw - 24px);
+      background: rgba(10,14,22,0.88); color: #eef4ff; border-radius: 12px; padding: 14px 14px 12px;
+      border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      transform: translateY(-8px); opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+      backdrop-filter: blur(8px);
+    }
+    #infoPanel.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    #infoPanel h3 { margin: 0 0 6px; font-size: 18px; letter-spacing: 0.2px; }
+    #infoPanel p { margin: 0; font-size: 13px; color: #c9d6ee; line-height: 1.5; }
+    #infoPanel .close {
+      position: absolute; top: 8px; right: 10px; cursor: pointer; font-size: 18px; line-height: 1; color: #9fb3d9;
+      background: transparent; border: none; padding: 4px;
+    }
+    #infoPanel .close:hover { color: #fff; }
+    #speedBadge {
+      position: fixed; left: 12px; top: 12px; z-index: 10; font-size: 12px; color: #bcd0f5;
+      background: rgba(10,14,22,0.7); border: 1px solid rgba(255,255,255,0.08); padding: 6px 10px; border-radius: 999px; backdrop-filter: blur(6px);
+    }
+    a-scene { height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="speedBadge">Speed: <strong id="speedLabel">Normal (1×)</strong> — [1] Slow • [2] Normal • [3] Fast • [O] Orbits</div>
+  <div id="ui">
+    <strong>Controls</strong><br/>
+    Move: <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> &nbsp; Look: <kbd>Mouse</kbd> (click to lock)<br/>
+    Interact: hover to highlight, <kbd>Click</kbd> a planet for details<br/>
+    Speed: <kbd>1</kbd> 0.25×, <kbd>2</kbd> 1×, <kbd>3</kbd> 3× — Toggle orbits: <kbd>O</kbd>
+  </div>
+  <div id="infoPanel" aria-hidden="true">
+    <button class="close" aria-label="Close">✕</button>
+    <h3 id="infoTitle">Planet</h3>
+    <p id="infoDesc">Description</p>
+  </div>
+
+  <a-scene background="color: #000" renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false">
+    <!-- Assets -->
+    <a-assets timeout="20">
+      <img id="tex-sun" src="texture/2k_sun.jpg" crossorigin="anonymous">
+      <img id="tex-mercury" src="texture/2k_mercury.jpg" crossorigin="anonymous">
+      <img id="tex-venus-surface" src="texture/2k_venus_surface.jpg" crossorigin="anonymous">
+      <img id="tex-venus-atmo" src="texture/2k_venus_atmosphere.jpg" crossorigin="anonymous">
+      <img id="tex-earth" src="texture/2k_earth_daymap.jpg" crossorigin="anonymous">
+      <img id="tex-earth-normal" src="texture/2k_earth_normal_map.tif" crossorigin="anonymous">
+      <img id="tex-moon" src="texture/2k_moon.jpg" crossorigin="anonymous">
+      <img id="tex-mars" src="texture/2k_mars.jpg" crossorigin="anonymous">
+      <img id="tex-jupiter" src="texture/2k_jupiter.jpg" crossorigin="anonymous">
+      <img id="tex-saturn" src="texture/2k_saturn.jpg" crossorigin="anonymous">
+      <img id="tex-saturn-ring" src="texture/2k_saturn_ring_alpha.png" crossorigin="anonymous">
+      <img id="tex-uranus" src="texture/2k_uranus.jpg" crossorigin="anonymous">
+      <img id="tex-neptune" src="texture/2k_neptune.jpg" crossorigin="anonymous">
+      <img id="tex-stars" src="texture/2k_stars_milky_way.jpg" crossorigin="anonymous">
+    </a-assets>
+
+    <!-- Lights -->
+    <a-entity light="type: ambient; intensity: 0.38; color: #ffffff"></a-entity>
+
+    <!-- Starry sky -->
+    <a-sky src="#tex-stars" rotation="0 -90 0"></a-sky>
+
+    <!-- Camera rig with cursor -->
+    <a-entity id="rig" position="0 14 150">
+      <a-entity id="camera" camera="far: 5000" look-controls="pointerLockEnabled: true" wasd-controls="acceleration: 40">
+        <a-entity cursor="rayOrigin: mouse" raycaster="objects: .selectable; far: 600" position="0 0 -0.05"></a-entity>
+      </a-entity>
+    </a-entity>
+
+    <!-- Solar system -->
+    <a-entity id="system">
+
+      <!-- SUN -->
+      <a-entity id="sun" position="0 0 0">
+        <a-sphere radius="9" segments-width="80" segments-height="48"
+          material="src: #tex-sun; emissive: #ffaa33; emissiveIntensity: 0.5; roughness: 1; metalness: 0"
+          class="selectable" hoverable
+          data-name="Sun"
+          data-desc="The Sun contains 99.8% of the Solar System's mass. A G-type main-sequence star powered by nuclear fusion, it provides the light and energy that drives planetary weather, climates, and life on Earth."
+          spin="period: 22">
+        </a-sphere>
+        <!-- Soft corona glow -->
+        <a-sphere radius="9.9" material="color: #ffcc66; opacity: 0.16; transparent: true; side: back; depthWrite: false"></a-sphere>
+        <!-- Point light from Sun -->
+        <a-entity light="type: point; intensity: 4.0; distance: 900; decay: 2; color: #fff6e4"></a-entity>
+        <a-text value="Sun" position="0 11.5 0" align="center" color="#ffefc2" width="40" billboard></a-text>
+      </a-entity>
+
+      <!-- MERCURY -->
+      <a-entity class="orbit" orbit="period: 7.5">
+        <a-ring class="orbit-line" radius-inner="19.9" radius-outer="20.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.12; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="20 0 0">
+          <a-entity rotation="0 0 2">
+            <a-sphere class="selectable" hoverable radius="0.7" segments-width="36" segments-height="24"
+              material="src: #tex-mercury; roughness: 1; metalness: 0"
+              spin="period: 10"
+              data-name="Mercury"
+              data-desc="The smallest and fastest planet, Mercury has a heavily cratered surface and no substantial atmosphere. Its day is longer than its year due to a 3:2 spin–orbit resonance.">
+            </a-sphere>
+            <a-text class="label" billboard value="Mercury" position="0 1.35 0" align="center" color="#ffffff" width="14"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- VENUS -->
+      <a-entity class="orbit" orbit="period: 12">
+        <a-ring class="orbit-line" radius-inner="27.9" radius-outer="28.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.12; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="28 0 0">
+          <!-- Axial tilt ~177° (retrograde) -->
+          <a-entity rotation="0 0 177">
+            <a-sphere class="selectable" hoverable radius="1.35" segments-width="40" segments-height="28"
+              material="src: #tex-venus-surface; roughness: 1; metalness: 0"
+              spin="period: -18"
+              data-name="Venus"
+              data-desc="Venus is shrouded by thick clouds of sulfuric acid. Its dense CO₂ atmosphere creates a runaway greenhouse effect, making it the hottest planet despite being second from the Sun.">
+            </a-sphere>
+            <!-- Atmosphere layer -->
+            <a-sphere radius="1.48" segments-width="40" segments-height="28"
+              material="src: #tex-venus-atmo; transparent: true; opacity: 0.35; side: double; depthWrite: false">
+            </a-sphere>
+            <a-text class="label" billboard value="Venus" position="0 2.05 0" align="center" color="#ffffff" width="14"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- EARTH & MOON -->
+      <a-entity class="orbit" orbit="period: 16">
+        <a-ring class="orbit-line" radius-inner="36.9" radius-outer="37.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.13; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="37 0 0">
+          <!-- Earth axial tilt 23.4° -->
+          <a-entity rotation="0 0 23.4">
+            <a-sphere class="selectable" hoverable radius="1.4" segments-width="48" segments-height="32"
+              material="src: #tex-earth; normalMap: #tex-earth-normal; normalScale: 0.9 0.9; roughness: 1; metalness: 0"
+              spin="period: 1.4"
+              data-name="Earth"
+              data-desc="Our home planet, with liquid water oceans and a protective atmosphere. The normal-mapped surface adds depth to continents and ocean floors.">
+            </a-sphere>
+            <a-text class="label" billboard value="Earth" position="0 2.1 0" align="center" color="#ffffff" width="14"></a-text>
+
+            <!-- Moon orbit (nested) -->
+            <a-entity class="orbit moon-orbit" orbit="period: 2.2">
+              <a-entity position="3.8 0 0">
+                <a-sphere class="selectable" hoverable radius="0.38" segments-width="32" segments-height="20"
+                  material="src: #tex-moon; roughness: 1; metalness: 0"
+                  spin="period: 2.2"
+                  data-name="Moon"
+                  data-desc="Earth’s only natural satellite stabilizes our tilt and drives tides. Its synchronous rotation keeps the same face toward Earth.">
+                </a-sphere>
+                <a-text class="label" billboard value="Moon" position="0 0.7 0" align="center" color="#ffffff" width="10"></a-text>
+              </a-entity>
+            </a-entity>
+
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- MARS -->
+      <a-entity class="orbit" orbit="period: 22">
+        <a-ring class="orbit-line" radius-inner="46.9" radius-outer="47.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.12; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="47 0 0">
+          <a-entity rotation="0 0 25">
+            <a-sphere class="selectable" hoverable radius="0.85" segments-width="40" segments-height="28"
+              material="src: #tex-mars; roughness: 1; metalness: 0"
+              spin="period: 1.5"
+              data-name="Mars"
+              data-desc="The Red Planet has the largest volcano and canyon in the Solar System. Evidence suggests ancient rivers and lakes once flowed on its surface.">
+            </a-sphere>
+            <a-text class="label" billboard value="Mars" position="0 1.45 0" align="center" color="#ffffff" width="13"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- JUPITER -->
+      <a-entity class="orbit" orbit="period: 35">
+        <a-ring class="orbit-line" radius-inner="61.9" radius-outer="62.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.11; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="62 0 0">
+          <a-entity rotation="0 0 3">
+            <a-sphere class="selectable" hoverable radius="4.2" segments-width="64" segments-height="40"
+              material="src: #tex-jupiter; roughness: 1; metalness: 0"
+              spin="period: 0.6"
+              data-name="Jupiter"
+              data-desc="A gas giant mostly hydrogen and helium. Its Great Red Spot is a giant storm larger than Earth that has raged for centuries.">
+            </a-sphere>
+            <a-text class="label" billboard value="Jupiter" position="0 5.3 0" align="center" color="#ffffff" width="22"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- SATURN -->
+      <a-entity class="orbit" orbit="period: 45">
+        <a-ring class="orbit-line" radius-inner="78.9" radius-outer="79.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.11; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="79 0 0">
+          <a-entity rotation="0 0 26.7">
+            <a-sphere class="selectable" hoverable radius="3.6" segments-width="64" segments-height="40"
+              material="src: #tex-saturn; roughness: 1; metalness: 0"
+              spin="period: 0.65"
+              data-name="Saturn"
+              data-desc="Famous for its extensive ring system composed of ice and rock. The rings are remarkably thin, only tens of meters thick despite spanning hundreds of thousands of kilometers.">
+            </a-sphere>
+            <!-- Rings: flat, double-sided, alpha texture -->
+            <a-entity geometry="primitive: ring; radiusInner: 4.4; radiusOuter: 7.6; segmentsTheta: 180"
+              material="src: #tex-saturn-ring; side: double; transparent: true; alphaTest: 0.02; opacity: 0.96"
+              rotation="-90 0 0">
+            </a-entity>
+            <a-text class="label" billboard value="Saturn" position="0 4.55 0" align="center" color="#ffffff" width="18"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- URANUS -->
+      <a-entity class="orbit" orbit="period: 60">
+        <a-ring class="orbit-line" radius-inner="93.9" radius-outer="94.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.10; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="94 0 0">
+          <!-- Extreme axial tilt -->
+          <a-entity rotation="0 0 97.8">
+            <a-sphere class="selectable" hoverable radius="2.7" segments-width="56" segments-height="36"
+              material="src: #tex-uranus; roughness: 1; metalness: 0"
+              spin="period: -1.1"
+              data-name="Uranus"
+              data-desc="An ice giant tilted on its side, likely from a massive ancient impact. Its faint ring system and pale blue-green hue come from methane in the atmosphere.">
+            </a-sphere>
+            <a-text class="label" billboard value="Uranus" position="0 3.45 0" align="center" color="#ffffff" width="16"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+      <!-- NEPTUNE -->
+      <a-entity class="orbit" orbit="period: 75">
+        <a-ring class="orbit-line" radius-inner="108.9" radius-outer="109.1" segments-theta="256"
+          material="color: #ffffff; opacity: 0.10; transparent: true; side: double" rotation="-90 0 0"></a-ring>
+        <a-entity position="109 0 0">
+          <a-entity rotation="0 0 28">
+            <a-sphere class="selectable" hoverable radius="2.6" segments-width="56" segments-height="36"
+              material="src: #tex-neptune; roughness: 1; metalness: 0"
+              spin="period: 1.05"
+              data-name="Neptune"
+              data-desc="The windiest planet with speeds over 2,000 km/h. Discovered through mathematical prediction, Neptune has a deep azure color from atmospheric methane.">
+            </a-sphere>
+            <a-text class="label" billboard value="Neptune" position="0 3.35 0" align="center" color="#ffffff" width="16"></a-text>
+          </a-entity>
+        </a-entity>
+      </a-entity>
+
+    </a-entity>
+  </a-scene>
+
+  <script>
+    // Global simulation speed
+    window.simSpeed = 1.0;
+    const speedLabel = document.getElementById('speedLabel');
+
+    function updateSpeedLabel() {
+      const s = window.simSpeed;
+      const txt = s === 1 ? 'Normal (1×)' : (s < 1 ? 'Slow (0.25×)' : 'Fast (3×)');
+      speedLabel.textContent = txt;
+    }
+
+    // Keyboard controls for speed and orbit toggle
+    window.addEventListener('keydown', (e) => {
+      if (e.target && ['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+      switch (e.key) {
+        case '1': window.simSpeed = 0.25; updateSpeedLabel(); break;
+        case '2': window.simSpeed = 1.0; updateSpeedLabel(); break;
+        case '3': window.simSpeed = 3.0; updateSpeedLabel(); break;
+        case 'o':
+        case 'O':
+          document.querySelectorAll('.orbit-line').forEach(el => {
+            const vis = el.getAttribute('visible');
+            el.setAttribute('visible', vis === false ? true : !vis);
+          });
+          break;
+        case 'Escape':
+          hideInfo();
+          break;
+      }
+    });
+
+    // Info panel
+    const panel = document.getElementById('infoPanel');
+    const titleEl = document.getElementById('infoTitle');
+    const descEl = document.getElementById('infoDesc');
+    panel.querySelector('.close').addEventListener('click', hideInfo);
+    function showInfo(name, desc) {
+      titleEl.textContent = name || 'Object';
+      descEl.textContent = desc || '';
+      panel.classList.add('show');
+      panel.setAttribute('aria-hidden', 'false');
+    }
+    function hideInfo() {
+      panel.classList.remove('show');
+      panel.setAttribute('aria-hidden', 'true');
+    }
+
+    // A-Frame components
+    AFRAME.registerComponent('orbit', {
+      schema: { period: {type: 'number', default: 30} },
+      tick: function (time, dt) {
+        if (!dt) return;
+        // clamp dt to avoid jumps when tabbing back
+        const delta = Math.min(dt, 50);
+        const speed = window.simSpeed || 1;
+        const ang = (2 * Math.PI / this.data.period) * speed * (delta / 1000);
+        this.el.object3D.rotation.y += ang;
+      }
+    });
+
+    AFRAME.registerComponent('spin', {
+      schema: { period: {type: 'number', default: 10} },
+      tick: function (time, dt) {
+        if (!dt) return;
+        const delta = Math.min(dt, 50);
+        const speed = window.simSpeed || 1;
+        // Negative period = retrograde
+        const ang = (2 * Math.PI / this.data.period) * speed * (delta / 1000);
+        this.el.object3D.rotation.y += ang;
+      }
+    });
+
+    // Billboard labels to always face camera
+    AFRAME.registerComponent('billboard', {
+      tick: function () {
+        const cam = document.querySelector('#camera');
+        if (!cam) return;
+        // Make the text face the camera position
+        this.el.object3D.lookAt(cam.object3D.getWorldPosition(new THREE.Vector3()));
+      }
+    });
+
+    // Hover and click interactions
+    AFRAME.registerComponent('hoverable', {
+      init: function () {
+        const el = this.el;
+        const baseScale = el.getAttribute('scale') || {x:1,y:1,z:1};
+        this.baseScale = new THREE.Vector3(baseScale.x, baseScale.y, baseScale.z);
+        this.hoverScale = this.baseScale.clone().multiplyScalar(1.08);
+
+        el.addEventListener('mouseenter', () => {
+          el.setAttribute('scale', `${this.hoverScale.x} ${this.hoverScale.y} ${this.hoverScale.z}`);
+          // Slight emissive boost if material supports it
+          const mesh = el.getObject3D('mesh');
+          if (mesh && mesh.material) {
+            if (mesh.material.emissive) {
+              this._origEmissive = mesh.material.emissive.clone();
+              mesh.material.emissive.multiplyScalar(1.5);
+              if ('emissiveIntensity' in mesh.material) {
+                this._origEI = mesh.material.emissiveIntensity;
+                mesh.material.emissiveIntensity = (this._origEI || 1) * 1.6;
+              }
+              mesh.material.needsUpdate = true;
+            }
+          }
+          // Highlight label slightly
+          const label = el.parentEl && el.parentEl.querySelector('.label');
+          if (label) label.setAttribute('color', '#fff9d6');
+        });
+
+        el.addEventListener('mouseleave', () => {
+          el.setAttribute('scale', `${this.baseScale.x} ${this.baseScale.y} ${this.baseScale.z}`);
+          const mesh = el.getObject3D('mesh');
+          if (mesh && mesh.material && this._origEmissive) {
+            if (mesh.material.emissive) mesh.material.emissive.copy(this._origEmissive);
+            if ('emissiveIntensity' in mesh.material && this._origEI !== undefined) mesh.material.emissiveIntensity = this._origEI;
+            mesh.material.needsUpdate = true;
+          }
+          const label = el.parentEl && el.parentEl.querySelector('.label');
+          if (label) label.setAttribute('color', '#ffffff');
+        });
+
+        el.addEventListener('click', () => {
+          const name = el.getAttribute('data-name') || 'Unknown';
+          const desc = el.getAttribute('data-desc') || '';
+          showInfo(name, desc);
+        });
+      }
+    });
+
+    // Improve performance: limit max delta and enable frustum culling (default)
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      updateSpeedLabel();
+      // Slightly increase camera far plane already set; ensure controls feel nice
+      const cam = document.querySelector('#camera');
+      if (cam && cam.components['look-controls']) {
+        // Allow mouse to lock on click
+        cam.sceneEl.canvas.addEventListener('click', () => {
+          if (!document.pointerLockElement) cam.sceneEl.canvas.requestPointerLock();
+        });
+      }
+    });
+  </script>
+</body>
+</html>
