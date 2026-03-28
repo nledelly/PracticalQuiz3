@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -50,23 +51,22 @@
     <p id="infoDesc">Description</p>
   </div>
 
-  <a-scene background="color: #000" renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true" vr-mode-ui="enabled: false">
+  <a-scene background="color: #000" renderer="antialias: true; colorManagement: true; physicallyCorrectLights: true; maxCanvasWidth: 1920; maxCanvasHeight: 1080" vr-mode-ui="enabled: false" loading-screen="dotsColor: white; backgroundColor: black">
     <!-- Assets -->
-    <a-assets timeout="20">
-      <img id="tex-sun" src="texture/2k_sun.jpg" crossorigin="anonymous">
-      <img id="tex-mercury" src="texture/2k_mercury.jpg" crossorigin="anonymous">
-      <img id="tex-venus-surface" src="texture/2k_venus_surface.jpg" crossorigin="anonymous">
-      <img id="tex-venus-atmo" src="texture/2k_venus_atmosphere.jpg" crossorigin="anonymous">
-      <img id="tex-earth" src="texture/2k_earth_daymap.jpg" crossorigin="anonymous">
-      <img id="tex-earth-normal" src="texture/2k_earth_normal_map.tif" crossorigin="anonymous">
-      <img id="tex-moon" src="texture/2k_moon.jpg" crossorigin="anonymous">
-      <img id="tex-mars" src="texture/2k_mars.jpg" crossorigin="anonymous">
-      <img id="tex-jupiter" src="texture/2k_jupiter.jpg" crossorigin="anonymous">
-      <img id="tex-saturn" src="texture/2k_saturn.jpg" crossorigin="anonymous">
-      <img id="tex-saturn-ring" src="texture/2k_saturn_ring_alpha.png" crossorigin="anonymous">
-      <img id="tex-uranus" src="texture/2k_uranus.jpg" crossorigin="anonymous">
-      <img id="tex-neptune" src="texture/2k_neptune.jpg" crossorigin="anonymous">
-      <img id="tex-stars" src="texture/2k_stars_milky_way.jpg" crossorigin="anonymous">
+    <a-assets>
+      <img id="tex-sun" src="texture/2k_sun.jpg">
+      <img id="tex-mercury" src="texture/2k_mercury.jpg">
+      <img id="tex-venus-surface" src="texture/2k_venus_surface.jpg">
+      <img id="tex-venus-atmo" src="texture/2k_venus_atmosphere.jpg">
+      <img id="tex-earth" src="texture/2k_earth_daymap.jpg">
+      <img id="tex-moon" src="texture/2k_moon.jpg">
+      <img id="tex-mars" src="texture/2k_mars.jpg">
+      <img id="tex-jupiter" src="texture/2k_jupiter.jpg">
+      <img id="tex-saturn" src="texture/2k_saturn.jpg">
+      <img id="tex-saturn-ring" src="texture/2k_saturn_ring_alpha.png">
+      <img id="tex-uranus" src="texture/2k_uranus.jpg">
+      <img id="tex-neptune" src="texture/2k_neptune.jpg">
+      <img id="tex-stars" src="texture/2k_stars_milky_way.jpg">
     </a-assets>
 
     <!-- Lights -->
@@ -87,7 +87,7 @@
 
       <!-- SUN -->
       <a-entity id="sun" position="0 0 0">
-        <a-sphere radius="9" segments-width="80" segments-height="48"
+        <a-sphere radius="23" segments-width="48" segments-height="32"
           material="src: #tex-sun; emissive: #ffaa33; emissiveIntensity: 0.5; roughness: 1; metalness: 0"
           class="selectable" hoverable
           data-name="Sun"
@@ -95,25 +95,25 @@
           spin="period: 22">
         </a-sphere>
         <!-- Soft corona glow -->
-        <a-sphere radius="9.9" material="color: #ffcc66; opacity: 0.16; transparent: true; side: back; depthWrite: false"></a-sphere>
+        <a-sphere radius="25.3" material="color: #ffcc66; opacity: 0.16; transparent: true; side: back; depthWrite: false"></a-sphere>
         <!-- Point light from Sun -->
-        <a-entity light="type: point; intensity: 4.0; distance: 900; decay: 2; color: #fff6e4"></a-entity>
-        <a-text value="Sun" position="0 11.5 0" align="center" color="#ffefc2" width="40" billboard></a-text>
+        <a-entity light="type: point; intensity: 4.0; distance: 2300; decay: 2; color: #fff6e4"></a-entity>
+        <a-text value="Sun" position="0 29 0" align="center" color="#ffefc2" width="40" billboard></a-text>
       </a-entity>
 
       <!-- MERCURY -->
       <a-entity class="orbit" orbit="period: 7.5">
-        <a-ring class="orbit-line" radius-inner="19.9" radius-outer="20.1" segments-theta="256"
+        <a-ring class="orbit-line" radius-inner="24.375" radius-outer="24.625" segments-theta="256"
           material="color: #ffffff; opacity: 0.12; transparent: true; side: double" rotation="-90 0 0"></a-ring>
         <a-entity position="20 0 0">
           <a-entity rotation="0 0 2">
-            <a-sphere class="selectable" hoverable radius="0.7" segments-width="36" segments-height="24"
+            <a-sphere class="selectable" hoverable radius="2.0" segments-width="24" segments-height="16"
               material="src: #tex-mercury; roughness: 1; metalness: 0"
               spin="period: 10"
               data-name="Mercury"
               data-desc="The smallest and fastest planet, Mercury has a heavily cratered surface and no substantial atmosphere. Its day is longer than its year due to a 3:2 spin–orbit resonance.">
             </a-sphere>
-            <a-text class="label" billboard value="Mercury" position="0 1.35 0" align="center" color="#ffffff" width="14"></a-text>
+            <a-text class="label" billboard value="Mercury" position="0 4.0 0" align="center" color="#ffffff" width="14"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -125,17 +125,17 @@
         <a-entity position="28 0 0">
           <!-- Axial tilt ~177° (retrograde) -->
           <a-entity rotation="0 0 177">
-            <a-sphere class="selectable" hoverable radius="1.35" segments-width="40" segments-height="28"
+            <a-sphere class="selectable" hoverable radius="3.6" segments-width="24" segments-height="16"
               material="src: #tex-venus-surface; roughness: 1; metalness: 0"
               spin="period: -18"
               data-name="Venus"
               data-desc="Venus is shrouded by thick clouds of sulfuric acid. Its dense CO₂ atmosphere creates a runaway greenhouse effect, making it the hottest planet despite being second from the Sun.">
             </a-sphere>
             <!-- Atmosphere layer -->
-            <a-sphere radius="1.48" segments-width="40" segments-height="28"
+            <a-sphere radius="3.9" segments-width="40" segments-height="28"
               material="src: #tex-venus-atmo; transparent: true; opacity: 0.35; side: double; depthWrite: false">
             </a-sphere>
-            <a-text class="label" billboard value="Venus" position="0 2.05 0" align="center" color="#ffffff" width="14"></a-text>
+            <a-text class="label" billboard value="Venus" position="0 6.2 0" align="center" color="#ffffff" width="14"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -147,24 +147,24 @@
         <a-entity position="37 0 0">
           <!-- Earth axial tilt 23.4° -->
           <a-entity rotation="0 0 23.4">
-            <a-sphere class="selectable" hoverable radius="1.4" segments-width="48" segments-height="32"
-              material="src: #tex-earth; normalMap: #tex-earth-normal; normalScale: 0.9 0.9; roughness: 1; metalness: 0"
+            <a-sphere class="selectable" hoverable radius="3.9" segments-width="32" segments-height="24"
+              material="src: #tex-earth; roughness: 1; metalness: 0"
               spin="period: 1.4"
               data-name="Earth"
-              data-desc="Our home planet, with liquid water oceans and a protective atmosphere. The normal-mapped surface adds depth to continents and ocean floors.">
+              data-desc="Our home planet, with liquid water oceans and a protective atmosphere.">
             </a-sphere>
-            <a-text class="label" billboard value="Earth" position="0 2.1 0" align="center" color="#ffffff" width="14"></a-text>
+            <a-text class="label" billboard value="Earth" position="0 6.8 0" align="center" color="#ffffff" width="14"></a-text>
 
             <!-- Moon orbit (nested) -->
             <a-entity class="orbit moon-orbit" orbit="period: 2.2">
-              <a-entity position="3.8 0 0">
-                <a-sphere class="selectable" hoverable radius="0.38" segments-width="32" segments-height="20"
+              <a-entity position="10.5 0 0">
+                <a-sphere class="selectable" hoverable radius="1.0" segments-width="16" segments-height="12"
                   material="src: #tex-moon; roughness: 1; metalness: 0"
                   spin="period: 2.2"
                   data-name="Moon"
                   data-desc="Earth’s only natural satellite stabilizes our tilt and drives tides. Its synchronous rotation keeps the same face toward Earth.">
                 </a-sphere>
-                <a-text class="label" billboard value="Moon" position="0 0.7 0" align="center" color="#ffffff" width="10"></a-text>
+                <a-text class="label" billboard value="Moon" position="0 2.5 0" align="center" color="#ffffff" width="10"></a-text>
               </a-entity>
             </a-entity>
 
@@ -178,13 +178,13 @@
           material="color: #ffffff; opacity: 0.12; transparent: true; side: double" rotation="-90 0 0"></a-ring>
         <a-entity position="47 0 0">
           <a-entity rotation="0 0 25">
-            <a-sphere class="selectable" hoverable radius="0.85" segments-width="40" segments-height="28"
+            <a-sphere class="selectable" hoverable radius="2.3" segments-width="24" segments-height="16"
               material="src: #tex-mars; roughness: 1; metalness: 0"
               spin="period: 1.5"
               data-name="Mars"
               data-desc="The Red Planet has the largest volcano and canyon in the Solar System. Evidence suggests ancient rivers and lakes once flowed on its surface.">
             </a-sphere>
-            <a-text class="label" billboard value="Mars" position="0 1.45 0" align="center" color="#ffffff" width="13"></a-text>
+            <a-text class="label" billboard value="Mars" position="0 4.3 0" align="center" color="#ffffff" width="13"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -195,13 +195,13 @@
           material="color: #ffffff; opacity: 0.11; transparent: true; side: double" rotation="-90 0 0"></a-ring>
         <a-entity position="62 0 0">
           <a-entity rotation="0 0 3">
-            <a-sphere class="selectable" hoverable radius="4.2" segments-width="64" segments-height="40"
+            <a-sphere class="selectable" hoverable radius="11" segments-width="32" segments-height="24"
               material="src: #tex-jupiter; roughness: 1; metalness: 0"
               spin="period: 0.6"
               data-name="Jupiter"
               data-desc="A gas giant mostly hydrogen and helium. Its Great Red Spot is a giant storm larger than Earth that has raged for centuries.">
             </a-sphere>
-            <a-text class="label" billboard value="Jupiter" position="0 5.3 0" align="center" color="#ffffff" width="22"></a-text>
+            <a-text class="label" billboard value="Jupiter" position="0 14.5 0" align="center" color="#ffffff" width="22"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -212,18 +212,18 @@
           material="color: #ffffff; opacity: 0.11; transparent: true; side: double" rotation="-90 0 0"></a-ring>
         <a-entity position="79 0 0">
           <a-entity rotation="0 0 26.7">
-            <a-sphere class="selectable" hoverable radius="3.6" segments-width="64" segments-height="40"
+            <a-sphere class="selectable" hoverable radius="9.5" segments-width="32" segments-height="24"
               material="src: #tex-saturn; roughness: 1; metalness: 0"
               spin="period: 0.65"
               data-name="Saturn"
               data-desc="Famous for its extensive ring system composed of ice and rock. The rings are remarkably thin, only tens of meters thick despite spanning hundreds of thousands of kilometers.">
             </a-sphere>
             <!-- Rings: flat, double-sided, alpha texture -->
-            <a-entity geometry="primitive: ring; radiusInner: 4.4; radiusOuter: 7.6; segmentsTheta: 180"
+            <a-entity geometry="primitive: ring; radiusInner: 11.5; radiusOuter: 20.0; segmentsTheta: 180"
               material="src: #tex-saturn-ring; side: double; transparent: true; alphaTest: 0.02; opacity: 0.96"
               rotation="-90 0 0">
             </a-entity>
-            <a-text class="label" billboard value="Saturn" position="0 4.55 0" align="center" color="#ffffff" width="18"></a-text>
+            <a-text class="label" billboard value="Saturn" position="0 12.8 0" align="center" color="#ffffff" width="18"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -235,13 +235,13 @@
         <a-entity position="94 0 0">
           <!-- Extreme axial tilt -->
           <a-entity rotation="0 0 97.8">
-            <a-sphere class="selectable" hoverable radius="2.7" segments-width="56" segments-height="36"
+            <a-sphere class="selectable" hoverable radius="7.0" segments-width="24" segments-height="16"
               material="src: #tex-uranus; roughness: 1; metalness: 0"
               spin="period: -1.1"
               data-name="Uranus"
               data-desc="An ice giant tilted on its side, likely from a massive ancient impact. Its faint ring system and pale blue-green hue come from methane in the atmosphere.">
             </a-sphere>
-            <a-text class="label" billboard value="Uranus" position="0 3.45 0" align="center" color="#ffffff" width="16"></a-text>
+            <a-text class="label" billboard value="Uranus" position="0 9.5 0" align="center" color="#ffffff" width="16"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -252,13 +252,13 @@
           material="color: #ffffff; opacity: 0.10; transparent: true; side: double" rotation="-90 0 0"></a-ring>
         <a-entity position="109 0 0">
           <a-entity rotation="0 0 28">
-            <a-sphere class="selectable" hoverable radius="2.6" segments-width="56" segments-height="36"
+            <a-sphere class="selectable" hoverable radius="6.8" segments-width="24" segments-height="16"
               material="src: #tex-neptune; roughness: 1; metalness: 0"
               spin="period: 1.05"
               data-name="Neptune"
               data-desc="The windiest planet with speeds over 2,000 km/h. Discovered through mathematical prediction, Neptune has a deep azure color from atmospheric methane.">
             </a-sphere>
-            <a-text class="label" billboard value="Neptune" position="0 3.35 0" align="center" color="#ffffff" width="16"></a-text>
+            <a-text class="label" billboard value="Neptune" position="0 9.2 0" align="center" color="#ffffff" width="16"></a-text>
           </a-entity>
         </a-entity>
       </a-entity>
@@ -409,5 +409,43 @@
       }
     });
   </script>
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
 </body>
 </html>
